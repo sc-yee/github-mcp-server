@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings" //***// changed
+	"regexp"  //***// changed
 
 	"github.com/github/github-mcp-server/pkg/translations"
 	"github.com/google/go-github/v69/github"
@@ -99,29 +100,18 @@ func SearchCode(getClient GetClientFn, t translations.TranslationHelperFunc) (to
 			}
 
 			//***// changed
-			query = strings.ReplaceAll(query, "\"", "\\\"")
-			startIndex := 0
-			endIndex := len(query)
-			queries := strings.Split(query, " ")
-			if len(queries) > 1 {
-				startIndex = -1
-				for index, _query := range queries {
-					_queries := strings.Split(_query, ":")
-					if len(_queries) > 1 && _queries[1] != "" {
-						if startIndex > -1 {
-							endIndex = strings.Index(query, _query) - 1
-							break
-						}
-					} else if startIndex == -1 {
-						if index == 0 {
-							startIndex = 0
-						} else {
-							startIndex = strings.Index(query, " "+_query) + 1
-						}
-					}
+			re := regexp.MustCompile(`"[^"]+"@"[^"]+"|"[^"]+"@\w+|\w+@"[^"]+"|"[^"]+"|\w+:"[^"]+"|\w+:[^\s]+|\"[^\"]+\"|\S+`)
+			query = strings.ReplaceAll(query, ": ", "@")
+			queries := re.FindAllString(query, -1)
+
+			for _index, _query := range queries {
+				if strings.Contains(_query, ":") && !strings.Contains(_query, "\"") && !strings.Contains(_query, "@") {
+					continue
 				}
+				queries[_index] = "\"" + strings.ReplaceAll(strings.ReplaceAll(_query, "@", ": "), "\"", "\\\"") + "\""
 			}
-			query = query[:startIndex] + "\"" + query[startIndex:endIndex] + "\"" + query[endIndex:]
+
+			query = strings.Join(queries, " ")
 			fmt.Println("query: " + query)
 			//***// changed
 			
