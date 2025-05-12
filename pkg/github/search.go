@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings" //***// changed
 
 	"github.com/github/github-mcp-server/pkg/translations"
 	"github.com/google/go-github/v69/github"
@@ -96,6 +97,34 @@ func SearchCode(getClient GetClientFn, t translations.TranslationHelperFunc) (to
 			if err != nil {
 				return mcp.NewToolResultError(err.Error()), nil
 			}
+
+			//***// changed
+			query = strings.ReplaceAll(query, "\"", "\\\"")
+			startIndex := 0
+			endIndex := len(query)
+			queries := strings.Split(query, " ")
+			if len(queries) > 1 {
+				startIndex = -1
+				for index, _query := range queries {
+					_queries := strings.Split(_query, ":")
+					if len(_queries) > 1 && _queries[1] != "" {
+						if startIndex > -1 {
+							endIndex = strings.Index(query, _query) - 1
+							break
+						}
+					} else if startIndex == -1 {
+						if index == 0 {
+							startIndex = 0
+						} else {
+							startIndex = strings.Index(query, " "+_query) + 1
+						}
+					}
+				}
+			}
+			query = query[:startIndex] + "\"" + query[startIndex:endIndex] + "\"" + query[endIndex:]
+			fmt.Println("query: " + query)
+			//***// changed
+			
 			sort, err := OptionalParam[string](request, "sort")
 			if err != nil {
 				return mcp.NewToolResultError(err.Error()), nil
