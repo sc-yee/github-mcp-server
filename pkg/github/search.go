@@ -101,7 +101,7 @@ func SearchCode(getClient GetClientFn, t translations.TranslationHelperFunc) (to
 
 			//***// changed
 			re := regexp.MustCompile(`"[^"]+"@"[^"]+"|"[^"]+"@\w+|\w+@"[^"]+"|"[^"]+"|\w+:"[^"]+"|\w+:[^\s]+|\"[^\"]+\"|\S+`)
-			query = strings.ReplaceAll(query, ": ", "@")
+			query = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(query, "  :", ":"), " :", ":"), ": ", "@")
 			queries := re.FindAllString(query, -1)
 
 			for _index, _query := range queries {
