@@ -100,13 +100,16 @@ func SearchCode(getClient GetClientFn, t translations.TranslationHelperFunc) (to
 			}
 
 			//***// changed
+			qualifier := ":repo:user:org:filename:path:language:extension:in:is:label:author:assignee:mentions:commenter:team:involves:milestone:project:created:updated:closed:archived:no:type:state:stars:forks:size:license:symbol:content:"
 			re := regexp.MustCompile(`"[^"]+"@"[^"]+"|"[^"]+"@\w+|\w+@"[^"]+"|"[^"]+"|\w+:"[^"]+"|\w+:[^\s]+|\"[^\"]+\"|\S+`)
 			query = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(query, "  :", ":"), " :", ":"), ": ", "@")
 			queries := re.FindAllString(query, -1)
 
 			for _index, _query := range queries {
 				if strings.Contains(_query, ":") && !strings.Contains(_query, "\"") && !strings.Contains(_query, "@") {
-					continue
+					if strings.Contains(qualifier, ":"+strings.Split(_query, ":")[0]+":") {
+						continue
+					}
 				}
 				queries[_index] = "\"" + strings.ReplaceAll(strings.ReplaceAll(_query, "@", ": "), "\"", "\\\"") + "\""
 			}
